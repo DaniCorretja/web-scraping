@@ -5,8 +5,8 @@ Esta práctica se ha realizado bajo el contexto de la asignatura Tipología y ci
 
 ## Miembros del equipo
 La actividad ha sido realizada por:
-- Daniel Corretja (@danicorretja)
-- Xavier Gimeno (@xavisgg)
+- [Daniel Corretja](https://github.com/DaniCorretja)
+- [Xavier Gimeno](https://github.com/XaviSGG)
 
 ## Ficheros del código fuente
 TBD
