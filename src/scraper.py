@@ -17,7 +17,15 @@ class RecipesScraper():
 
     def __get_recipes_category_info(self, bs):
         #Devuelve lista de tuples [(nombre_cat1, link1), (nombre_cat2, link2)]
-        #TODO
+        categories = []
+        #Obtenemos categorias principales en las que se clasifican las recetas
+        divs_main = bs.findAll("div", {"class": "categoria ga", "data-category":"Portada"})
+        #Iteramos cada categoria para obtener: link y nombre de la categoria
+        for category_div in divs_main:
+            link_category = categoria.findAll("a", {"class":"titulo"})
+            for link in link_category:
+                categories.append((link.getText(), link.attrs["href"]))
+        return categories
 
     def __get_next_page_link(self, bs):
         #Devuelve string con la url a la siguiente pagina. En caso de no existir devuelve None
