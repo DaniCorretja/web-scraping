@@ -9,8 +9,8 @@ La actividad ha sido realizada por:
 - [Xavier Gimeno](https://github.com/XaviSGG)
 
 ## Ficheros del código fuente
-- src/main.py: punto de partida del programa. Inicia el proceso de scraping.
-- src/scraper.py: contiene la implementación de la clase _RecipesScraper_ cuyos métodos realizan el proceso de scraping y generan el conjunto de datos a partir de la página web https://www.recetasgratis.net/.
+- **src/main.py:** punto de partida del programa. Inicia el proceso de scraping.
+- **src/scraper.py:** contiene la implementación de la clase _RecipesScraper_ cuyos métodos realizan el proceso de scraping y generan el conjunto de datos a partir de la página web https://www.recetasgratis.net/.
 
 ## Recursos
 TBD
