@@ -46,27 +46,27 @@ class RecipesScraper():
         id_pattern = re.compile(r'([0-9]+)\.html')
         for recipe in recipes:
             #Get recipe mandatory features
-            recepie_header = recipe.find("a", {"class":"titulo titulo--resultado"})
-            recepie_name = recepie_header.getText()
-            recepie_id   = id_pattern.search(recepie_header.attrs["href"]).group(1)
-            recepie_intro = recipe.find("div", {"class":"intro"}).getText()
+            recipe_header = recipe.find("a", {"class":"titulo titulo--resultado"})
+            recipe_name = recepie_header.getText()
+            recipe_id   = id_pattern.search(recepie_header.attrs["href"]).group(1)
+            recipe_intro = recipe.find("div", {"class":"intro"}).getText()
             #TODO -> Ampliar intro, la descripcion a veces está partida
             #Get recipe Optional features
-            recepie_numPeople = recipe.find("span", {"class":"property comensales"}).getText() if recipe.find("span", {"class":"property comensales"}) else ""
-            recepie_time  = recipe.find("span", {"class":"property duracion"}).getText() if recipe.find("span", {"class":"property duracion"}) else ""
-            recepie_type = recipe.find("span", {"class":"property para"}).getText() if recipe.find("span", {"class":"property para"}) else ""
-            recepie_val   = recipe.find("div", {"class":"valoracion"}).getText() if recipe.find("div", {"class":"valoracion"}) else ""
-            recepie_diff = diff_patern.search(recipe.text).group(1) if diff_patern.search(recipe.text) else ""
+            recipe_numPeople = recipe.find("span", {"class":"property comensales"}).getText() if recipe.find("span", {"class":"property comensales"}) else ""
+            recipe_time  = recipe.find("span", {"class":"property duracion"}).getText() if recipe.find("span", {"class":"property duracion"}) else ""
+            recipe_type = recipe.find("span", {"class":"property para"}).getText() if recipe.find("span", {"class":"property para"}) else ""
+            recipe_val   = recipe.find("div", {"class":"valoracion"}).getText() if recipe.find("div", {"class":"valoracion"}) else ""
+            recipe_diff = diff_patern.search(recipe.text).group(1) if diff_patern.search(recipe.text) else ""
             #Append to dataframe
-            receipes_page = receipes_page.append({'Id':recepie_id,
+            receipes_page = receipes_page.append({'Id':recipe_id,
                                                   'Categoria':recipe_category,
-                                                  'Nombre':recepie_name,
-                                                  'Valoracion':recepie_val,
-                                                  'Dificultad':recepie_diff,
-                                                  'NumComensales':recepie_numPeople,
-                                                  'Tiempo':recepie_time,
-                                                  'Tipo':recepie_type,
-                                                  'Descripcion':recepie_intro},ignore_index=True)
+                                                  'Nombre':recipe_name,
+                                                  'Valoracion':recipe_val,
+                                                  'Dificultad':recipe_diff,
+                                                  'NumComensales':recipe_numPeople,
+                                                  'Tiempo':recipe_time,
+                                                  'Tipo':recipe_type,
+                                                  'Descripcion':recipe_intro},ignore_index=True)
         return receipes_page
 
     def scrape(self):
