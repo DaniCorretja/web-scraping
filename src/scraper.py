@@ -39,7 +39,35 @@ class RecipesScraper():
 
     def __get_recipes(self, bs, recipe_category):
         #Devuelve dataframe con la información de las recetas (incluyendo la categoria pasada por parámetro)
-        #TODO
+        #Dataframe Inicial
+        receipes_page = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion'])
+        recipes = bs.findAll("div", {"class": "resultado link", "data-js-selector":"resultado"})
+        diff_patern = re.compile(r'Dificultad\s([A-Z,a-z]+)')
+        id_pattern = re.compile(r'([0-9]+)\.html')
+        for recipe in receipes_page:
+            #Get recipe mandatory features
+            recepie_header = recipe.find("a", {"class":"titulo titulo--resultado"})
+            recepie_name = recepie_header.getText()
+            recepie_id   = id_pattern.search(recepie_header.attrs["href"]).group(1)
+            recepie_intro = recipe.find("div", {"class":"intro"}).getText()
+            #TODO -> Ampliar intro, la descripcion a veces está partida
+            #Get recipe Optional features
+            recepie_numPeople = recipe.find("span", {"class":"property comensales"}).getText() if recipe.find("span", {"class":"property comensales"}) else ""
+            recepie_time  = recipe.find("span", {"class":"property duracion"}).getText() if recipe.find("span", {"class":"property duracion"}) else ""
+            recepie_type = recipe.find("span", {"class":"property para"}).getText() if recipe.find("span", {"class":"property para"}) else ""
+            recepie_val   = recipe.find("div", {"class":"valoracion"}).getText() if recipe.find("div", {"class":"valoracion"}) else ""
+            recepie_diff = diff_patern.search(recipe.text).group(1) if diff_patern.search(recipe.text) else ""
+            #Append to dataframe
+            receipes_page = receipes_page.append({'Id':recepie_id,
+                                                  'Categoria':recipe_category,
+                                                  'Nombre':recepie_name,
+                                                  'Valoracion':recepie_val,
+                                                  'Dificultad':recepie_diff,
+                                                  'NumComensales':recepie_numPeople,
+                                                  'Tiempo':recepie_time,
+                                                  'Tipo':recepie_type,
+                                                  'Descripcion':recepie_intro},ignore_index=True)
+        return receipes_page
 
     def scrape(self):
         #Extrae la información de las recetas y la almacena en memoria
