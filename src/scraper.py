@@ -44,7 +44,7 @@ class RecipesScraper():
         recipes = bs.findAll("div", {"class": "resultado link", "data-js-selector":"resultado"})
         diff_patern = re.compile(r'Dificultad\s([A-Z,a-z]+)')
         id_pattern = re.compile(r'([0-9]+)\.html')
-        for recipe in receipes_page:
+        for recipe in recipes:
             #Get recipe mandatory features
             recepie_header = recipe.find("a", {"class":"titulo titulo--resultado"})
             recepie_name = recepie_header.getText()
