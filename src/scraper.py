@@ -8,7 +8,7 @@ class RecipesScraper():
     def __init__(self):
         #Inicializa el objecto RecipesScraper
         self.url = "https://www.recetasgratis.net"
-        self.data = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion', 'Link_receta', 'img_src'])
+        self.data = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion', 'Link_receta'])
 
     def __download_html(self, url):
         #Decarga una página HTML y la devuelve
@@ -41,7 +41,7 @@ class RecipesScraper():
     def __get_recipes(self, bs, recipe_category):
         #Devuelve dataframe con la información de las recetas (incluyendo la categoria pasada por parámetro)
         #Dataframe Inicial
-        receipes_page = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion','Link_receta', 'img_src'])
+        receipes_page = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion','Link_receta'])
         recipes = bs.findAll("div", {"class": "resultado link", "data-js-selector":"resultado"})
         diff_patern = re.compile(r'Dificultad\s([A-Z,a-z]+)')
         id_pattern = re.compile(r'([0-9]+)\.html')
@@ -59,7 +59,6 @@ class RecipesScraper():
             recipe_val   = recipe.find("div", {"class":"valoracion"}).getText() if recipe.find("div", {"class":"valoracion"}) else ""
             recipe_diff = diff_patern.search(recipe.text).group(1) if diff_patern.search(recipe.text) else ""
             recipe_link = recipe_header.attrs["href"]
-            recipe_imgsrc = recipe.find("img", {"class":"imagen loading"}).attrs["data-imagen"]
             #Append to dataframe
             receipes_page = receipes_page.append({'Id':recipe_id,
                                                   'Categoria':recipe_category,
@@ -70,8 +69,7 @@ class RecipesScraper():
                                                   'Tiempo':recipe_time,
                                                   'Tipo':recipe_type,
                                                   'Descripcion':recipe_intro,
-                                                  'Link_receta':recipe_link,
-                                                  'img_src':recipe_imgsrc},ignore_index=True)
+                                                  'Link_receta':recipe_link},ignore_index=True)
         return receipes_page
 
     def scrape(self):
