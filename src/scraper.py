@@ -38,6 +38,24 @@ class RecipesScraper():
             return a_next_page.attrs["href"]
         return None
 
+    def __get_recipe_details(self, recipe_link):
+        votes_pattern = re.compile(r'([0-9]+)\s\S')
+        comment_pattern = re.compile(r'([0-9]+)\s\S')
+
+        bs_recipe = self.__download_html_and_parse(recipe_link)
+        basic_data = bs_recipe.find("div", {"class": "daticos"})
+
+        recipe_nvotes = votes_pattern.search(basic_data.find("span", {"class":"votos"}).getText()).group(1)
+        recipe_ncomments = comment_pattern.search(bs_recipe.find("a", {"class":"datico", "href":"#comentarios"}).find_next_sibling("a").getText()).group(1)
+        post_info  = bs_recipe.find("div", {"class": "nombre_autor"})
+        post_date_text = post_info.find("span", {"class":"date_publish"}).getText()
+        post_date = self.__format_date(post_date_text)
+        return post_date,recipe_nvotes,recipe_ncomments
+
+    def __format_date(self, string_date):
+        return ""
+
+
     def __get_recipes(self, bs, recipe_category):
         #Devuelve dataframe con la información de las recetas (incluyendo la categoria pasada por parámetro)
         #Dataframe Inicial
@@ -51,7 +69,7 @@ class RecipesScraper():
             recipe_name = recipe_header.getText()
             recipe_id   = id_pattern.search(recipe_header.attrs["href"]).group(1)
             recipe_intro = recipe.find("div", {"class":"intro"}).getText()
-            #TODO -> Ampliar intro, la descripcion a veces está partida
+
             #Get recipe Optional features
             recipe_numPeople = recipe.find("span", {"class":"property comensales"}).getText() if recipe.find("span", {"class":"property comensales"}) else ""
             recipe_time  = recipe.find("span", {"class":"property duracion"}).getText() if recipe.find("span", {"class":"property duracion"}) else ""
@@ -59,6 +77,8 @@ class RecipesScraper():
             recipe_val   = recipe.find("div", {"class":"valoracion"}).getText() if recipe.find("div", {"class":"valoracion"}) else ""
             recipe_diff = diff_patern.search(recipe.text).group(1) if diff_patern.search(recipe.text) else ""
             recipe_link = recipe_header.attrs["href"]
+            #Get recipe details
+            recipe_date,recipe_nvotes,recipe_ncomments = self.__get_recipe_details(recipe_link)
             #Append to dataframe
             receipes_page = receipes_page.append({'Id':recipe_id,
                                                   'Categoria':recipe_category,
