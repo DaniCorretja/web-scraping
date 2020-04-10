@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import re
 import time
+from datetime import date
 from bs4 import BeautifulSoup
 
 class RecipesScraper():
@@ -9,7 +10,7 @@ class RecipesScraper():
     def __init__(self):
         #Inicializa el objecto RecipesScraper
         self.url = "https://www.recetasgratis.net"
-        self.data = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion', 'Link_receta'])
+        self.data = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion', 'Link_receta', 'Num_comments', 'Num_reviews', 'Post_date'])
 
     def __download_html(self, url):
         #Decarga una página HTML y la devuelve
@@ -41,26 +42,41 @@ class RecipesScraper():
 
     def __get_recipe_details(self, recipe_link):
         #Devuelve los detalles de una receta.
+        #Patterns para regular expressions
         votes_pattern = re.compile(r'([0-9]+)\s\S')
         comment_pattern = re.compile(r'([0-9]+)\s\S')
-
+        date_pattern   = re.compile(r'([0-9]+\s+\S+\s+[0-9]+)')
+        #Inicialización de datos
+        post_date = None
+        recipe_nvotes = 0
+        recipe_ncomments = 0
+        #Lectura del HTML
         bs_recipe = self.__download_html_and_parse(recipe_link)
+        #Extraccion de datos
         basic_data = bs_recipe.find("div", {"class": "daticos"})
-
-        recipe_nvotes = votes_pattern.search(basic_data.find("span", {"class":"votos"}).getText()).group(1)
-        recipe_ncomments = comment_pattern.search(bs_recipe.find("a", {"class":"datico", "href":"#comentarios"}).find_next_sibling("a").getText()).group(1)
+        recipe_nvotes = votes_pattern.search(basic_data.find("span", {"class":"votos"}).getText()).group(1) if basic_data.find("span", {"class":"votos"}) else 0
+        has_comments = bs_recipe.find("a", {"class":"datico", "href":"#comentarios"})
+        if has_comments!= None:
+            recipe_ncomments = comment_pattern.search(has_comments.find_next_sibling("a").getText()).group(1) if has_comments.find_next_sibling("a") else 0
         post_info  = bs_recipe.find("div", {"class": "nombre_autor"})
-        post_date_text = post_info.find("span", {"class":"date_publish"}).getText()
-        post_date = self.__format_date(post_date_text)
+        if post_info != None:
+            post_date_text = date_pattern.search(post_info.find("span", {"class":"date_publish"}).getText()).group(1) if post_info.find("span", {"class":"date_publish"}) else ""
+            if post_date_text != "":
+                post_date = self.__format_date(post_date_text)
+            else:
+                post_date = None
         return post_date,recipe_nvotes,recipe_ncomments
 
     def __format_date(self, string_date):
-        return ""
+        months = {"enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,"julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12}
+        date_spit = string_date.lower().strip().split(" ")
+        recipe_date = date(int(date_spit[2]), months.get(date_spit[1]), int(date_spit[0]))
+        return recipe_date
 
     def __get_recipes(self, bs, recipe_category):
         #Devuelve dataframe con la información de las recetas (incluyendo la categoria pasada por parámetro)
         #Dataframe Inicial
-        receipes_page = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion','Link_receta'])
+        receipes_page = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion','Link_receta', 'Num_comments', 'Num_reviews', 'Post_date'])
         recipes = bs.findAll("div", {"class": "resultado link", "data-js-selector":"resultado"})
         diff_patern = re.compile(r'Dificultad\s([A-Z,a-z]+)')
         id_pattern = re.compile(r'([0-9]+)\.html')
@@ -90,20 +106,23 @@ class RecipesScraper():
                                                   'Tiempo':recipe_time,
                                                   'Tipo':recipe_type,
                                                   'Descripcion':recipe_intro,
-                                                  'Link_receta':recipe_link},ignore_index=True)
+                                                  'Link_receta':recipe_link,
+                                                  'Num_comments': recipe_ncomments,
+                                                  'Num_reviews': recipe_nvotes,
+                                                  'Post_date': recipe_date
+                                                  },ignore_index=True)
         return receipes_page
 
     def scrape(self):
         #Extrae la información de las recetas y la almacena en memoria
-        
         #Log inicial
-        print "Iniciando el proceso de web scraping para extraer recetas desde " + \
-			"'" + self.url + "'..."
-		print "Este proces puede tardar unos 60 minutes.\n"
+        print("Iniciando el proceso de web scraping para extraer recetas desde " + \
+        "'" + self.url + "'...")
+        print("Este proces puede tardar unos 60 minuts.\n")
 
 		#Iniciamos el timer
-		start_time = time.time()
-        
+        start_time = time.time()
+
         bs_main = self.__download_html_and_parse(self.url)
         recipes_category_info = self.__get_recipes_category_info(bs_main)
         for recipes_category_info_item in recipes_category_info:
@@ -117,11 +136,11 @@ class RecipesScraper():
                 link = self.__get_next_page_link(bs_recipes)
                 #if link is None: TODO -> descomentar para recoger todas las paginas!
                 there_are_more_recipes = False
-    
+
         #Mostramos el tiempo que ha tardado
-		end_time = time.time()
-		print "\nDuración del proceso: " + \
-			str(round(((end_time - start_time) / 60) , 2)) + " minutos"
+        end_time = time.time()
+        print ("\nDuración del proceso: " + \
+        str(round(((end_time - start_time) / 60) , 2)) + " minutos")
 
     def data2csv(self, filename):
         #Guarda la información de las recetas en un fichero CSV
