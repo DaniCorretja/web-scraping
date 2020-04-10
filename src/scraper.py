@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
-from bs import BeautifulSoup
+import re
+from bs4 import BeautifulSoup
 
 class RecipesScraper():
 
@@ -15,7 +16,7 @@ class RecipesScraper():
 
     def __download_html_and_parse(self, url):
         #Decarga una página HTML, la parsea, y la devuelve
-		return BeautifulSoup(self.__download_html(url).text, 'html.parser')
+        return BeautifulSoup(self.__download_html(url).text, 'html.parser')
 
     def __get_recipes_category_info(self, bs):
         #Devuelve lista de tuples [(nombre_cat1, link1), (nombre_cat2, link2)]
@@ -32,7 +33,7 @@ class RecipesScraper():
     def __get_next_page_link(self, bs):
         #Devuelve un string con la url a la siguiente pagina. En caso de no existir devuelve None
         div_paginator = bs.find("div", {"class": "paginator"})
-        a_next_page = paginator.find("span", {"class":"current"}).find_next_sibling("a")
+        a_next_page = div_paginator.find("span", {"class":"current"}).find_next_sibling("a")
         if (a_next_page is not None):
             return a_next_page.attrs["href"]
         return None
@@ -47,8 +48,8 @@ class RecipesScraper():
         for recipe in recipes:
             #Get recipe mandatory features
             recipe_header = recipe.find("a", {"class":"titulo titulo--resultado"})
-            recipe_name = recepie_header.getText()
-            recipe_id   = id_pattern.search(recepie_header.attrs["href"]).group(1)
+            recipe_name = recipe_header.getText()
+            recipe_id   = id_pattern.search(recipe_header.attrs["href"]).group(1)
             recipe_intro = recipe.find("div", {"class":"intro"}).getText()
             #TODO -> Ampliar intro, la descripcion a veces está partida
             #Get recipe Optional features
@@ -88,5 +89,5 @@ class RecipesScraper():
 
     def data2csv(self, filename):
         #Guarda la información de las recetas en un fichero CSV
-		file = open("../csv/" + filename, "w+")
-        df.to_csv("..\csv" + filename, index=False, header=True)
+        #file = open("../csv/" + filename, "w+")
+        self.data.to_csv(r"..\csv" + filename, index=False, header=True)
