@@ -118,7 +118,7 @@ class RecipesScraper():
         #Log inicial
         print("Iniciando el proceso de web scraping para extraer recetas desde " + \
         "'" + self.url + "'...")
-        print("Este proces puede tardar unos 60 minuts.\n")
+        print("Este proces puede tardar unos 120 minuts.\n")
 
 		#Iniciamos el timer
         start_time = time.time()
