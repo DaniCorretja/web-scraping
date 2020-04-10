@@ -16,7 +16,7 @@ class RecipesScraper():
 
     def __download_html_and_parse(self, url):
         #Decarga una página HTML, la parsea, y la devuelve
-        return BeautifulSoup(self.__download_html(url).text, 'html.parser')
+        return BeautifulSoup(self.__download_html(url), 'html.parser')
 
     def __get_recipes_category_info(self, bs):
         #Devuelve lista de tuples [(nombre_cat1, link1), (nombre_cat2, link2)]
