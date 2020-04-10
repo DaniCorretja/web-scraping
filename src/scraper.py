@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 import re
+import time
 from bs4 import BeautifulSoup
 
 class RecipesScraper():
@@ -39,6 +40,7 @@ class RecipesScraper():
         return None
 
     def __get_recipe_details(self, recipe_link):
+        #Devuelve los detalles de una receta.
         votes_pattern = re.compile(r'([0-9]+)\s\S')
         comment_pattern = re.compile(r'([0-9]+)\s\S')
 
@@ -54,7 +56,6 @@ class RecipesScraper():
 
     def __format_date(self, string_date):
         return ""
-
 
     def __get_recipes(self, bs, recipe_category):
         #Devuelve dataframe con la información de las recetas (incluyendo la categoria pasada por parámetro)
@@ -94,6 +95,15 @@ class RecipesScraper():
 
     def scrape(self):
         #Extrae la información de las recetas y la almacena en memoria
+        
+        #Log inicial
+        print "Iniciando el proceso de web scraping para extraer recetas desde " + \
+			"'" + self.url + "'..."
+		print "Este proces puede tardar unos 60 minutes.\n"
+
+		#Iniciamos el timer
+		start_time = time.time()
+        
         bs_main = self.__download_html_and_parse(self.url)
         recipes_category_info = self.__get_recipes_category_info(bs_main)
         for recipes_category_info_item in recipes_category_info:
@@ -107,7 +117,11 @@ class RecipesScraper():
                 link = self.__get_next_page_link(bs_recipes)
                 #if link is None: TODO -> descomentar para recoger todas las paginas!
                 there_are_more_recipes = False
-
+    
+        #Mostramos el tiempo que ha tardado
+		end_time = time.time()
+		print "\nDuración del proceso: " + \
+			str(round(((end_time - start_time) / 60) , 2)) + " minutos"
 
     def data2csv(self, filename):
         #Guarda la información de las recetas en un fichero CSV
