@@ -81,13 +81,13 @@ class RecipesScraper():
             while there_are_more_recipes:
                 bs_recipes = self.__download_html_and_parse(link)
                 recipes = self.__get_recipes(bs_recipes, recipe_category)
-                self.data.append(recipes)
+                self.data = pd.concat([self.data, recipes], axis=0, sort=False)
                 link = self.__get_next_page_link(bs_recipes)
-                if link is None:
-                    there_are_more_recipes = False
+                #if link is None: TODO -> descomentar para recoger todas las paginas!
+                there_are_more_recipes = False
 
 
     def data2csv(self, filename):
         #Guarda la información de las recetas en un fichero CSV
         #file = open("../csv/" + filename, "w+")
-        self.data.to_csv(r"..\csv" + filename, index=False, header=True)
+        self.data.to_csv("./../csv/" + filename, index=False, header=True, sep="|")
