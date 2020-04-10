@@ -13,4 +13,5 @@ La actividad ha sido realizada por:
 - **src/scraper.py:** contiene la implementación de la clase _RecipesScraper_ cuyos métodos realizan el proceso de scraping y generan el conjunto de datos a partir de la página web https://www.recetasgratis.net/.
 
 ## Recursos
-TBD
+1.	Lawson, R. (2015). Web Scraping with Python. Packt Publishing Ltd. Chapter 2. Scraping the Data.
+2.	Mitchel, R. (2015). Web Scraping with Python: Collecting Data from the Modern Web. O'Reilly Media, Inc. Chapter 1. Your First Web Scraper.
