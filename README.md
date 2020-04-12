@@ -12,6 +12,7 @@ La actividad ha sido realizada por:
 - **src/main.py:** punto de partida del programa. Inicia el proceso de scraping.
 - **src/scraper.py:** contiene la implementación de la clase _RecipesScraper_ cuyos métodos realizan el proceso de scraping y generan el conjunto de datos a partir de la página web https://www.recetasgratis.net/.
 - **csv/recetas.csv:** contiene el dataset generado al ejecutar el script main.py.
+- **pdf/memoria.pdf:** contiene el documento con la memoria de la práctica.
 
 ## Recursos
 1.	Lawson, R. (2015). Web Scraping with Python. Packt Publishing Ltd. Chapter 2. Scraping the Data.
