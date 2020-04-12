@@ -15,7 +15,25 @@ class RecipesScraper():
 
     def __download_html(self, url):
         #Decarga una página HTML y la devuelve
-        return requests.get(url).text
+        #Modificar las cabeceras de la request
+        headers={"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                 "Accept-Encoding": "gzip, deflate, sdch, br",
+                 "Accept-Language": "en-US,en;q=0.8",
+                 "Cache-Control": "no-cache", "dnt": "1",
+                 "Pragma": "no-cache", "Upgrade-Insecure-Requests": "1",
+                 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:75.0) Gecko/20100101 Firefox/75.0"}
+        responseCode = ""
+        timeout = 5
+        response = ""
+        retries = 0
+        #Intentamos hasta 3 veces descargar la pagina
+        while responseCode.startswith("2") == False and retries < 3:
+            response = requests.get(url, headers=headers, timeout=timeout)
+            responseCode = str(response.status_code)
+            retries += 1
+            timeout = timeout**2
+
+        return response.text
 
     def __download_html_and_parse(self, url):
         #Decarga una página HTML, la parsea, y la devuelve
@@ -145,13 +163,13 @@ class RecipesScraper():
                 recipes = self.__get_recipes(bs_recipes, recipe_category)
                 self.data = pd.concat([self.data, recipes], axis=0, sort=False)
                 link = self.__get_next_page_link(bs_recipes)
-                #if link is None: TODO -> descomentar para recoger todas las paginas!
-                there_are_more_recipes = False
+                if link is None:
+                    there_are_more_recipes = False
 
         #Mostramos el tiempo que ha tardado
         end_time = time.time()
-        print ("\nDuración del proceso: " + \
-        str(round(((end_time - start_time) / 60) , 2)) + " minutos")
+        total_time = time.strftime("%H:%M:%S", time.gmtime(end_time - start_time))
+        print ("\nDuración del proceso: ", total_time)
 
     def data2csv(self, filename):
         #Guarda la información de las recetas en un fichero CSV
