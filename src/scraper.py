@@ -10,7 +10,7 @@ class RecipesScraper():
     def __init__(self):
         #Inicializa el objecto RecipesScraper
         self.url = "https://www.recetasgratis.net"
-        self.columns = ['Id','Categoria','Nombre','Valoracion','Dificultad','Num_comensales','Tiempo','Tipo','Descripcion','Link_receta','Num_comments','Num_reviews','Fecha_modificacion','Ingredientes']
+        self.columns = ['Id','Categoria','Nombre','Valoracion','Dificultad','Num_comensales','Tiempo','Tipo','Link_receta','Num_comentarios','Num_reviews','Fecha_modificacion','Ingredientes']
         self.data = pd.DataFrame(columns=self.columns)
 
     def __download_html(self, url):
@@ -106,20 +106,27 @@ class RecipesScraper():
         #Dataframe Inicial
         receipes_page = pd.DataFrame(columns=self.columns)
         recipes = bs.findAll("div", {"class": "resultado link", "data-js-selector":"resultado"})
-        diff_patern = re.compile(r'Dificultad\s([A-Z,a-z]+)')
+        diff_patern = re.compile(r'Dificultad\s(.+)')
         id_pattern = re.compile(r'([0-9]+)\.html')
+        val_pattern = re.compile(r'width:\s?(.+)%')
+
         for recipe in recipes:
             #Get recipe mandatory features
             recipe_header = recipe.find("a", {"class":"titulo titulo--resultado"})
             recipe_name = recipe_header.getText()
             recipe_id   = id_pattern.search(recipe_header.attrs["href"]).group(1)
-            recipe_intro = recipe.find("div", {"class":"intro"}).getText()
 
             #Get recipe Optional features
             recipe_numPeople = recipe.find("span", {"class":"property comensales"}).getText() if recipe.find("span", {"class":"property comensales"}) else ""
             recipe_time  = recipe.find("span", {"class":"property duracion"}).getText() if recipe.find("span", {"class":"property duracion"}) else ""
             recipe_type = recipe.find("span", {"class":"property para"}).getText() if recipe.find("span", {"class":"property para"}) else ""
-            recipe_val   = recipe.find("div", {"class":"valoracion"}).getText() if recipe.find("div", {"class":"valoracion"}) else ""
+            recipe_val   = recipe.find("div", {"class":"valoracion"}).attrs["style"] if recipe.find("div", {"class":"valoracion"}) else ""
+            mval =  val_pattern.search(recipe_val)
+            if mval != None:
+                recipe_val = val_pattern.search(recipe_val).group(1) if val_pattern.search(recipe_val) else None
+                recipe_val = round(float(recipe_val)/20,1)
+            else:
+                recipe_val = None
             recipe_diff = diff_patern.search(recipe.text).group(1) if diff_patern.search(recipe.text) else ""
             recipe_link = recipe_header.attrs["href"]
             #Get recipe details
@@ -133,9 +140,8 @@ class RecipesScraper():
                                                   'Num_comensales':recipe_numPeople,
                                                   'Tiempo':recipe_time,
                                                   'Tipo':recipe_type,
-                                                  'Descripcion':recipe_intro,
                                                   'Link_receta':recipe_link,
-                                                  'Num_comments': recipe_ncomments,
+                                                  'Num_comentarios': recipe_ncomments,
                                                   'Num_reviews': recipe_nvotes,
                                                   'Fecha_modificacion': recipe_date,
                                                   'Ingredientes': recipe_ingredients
