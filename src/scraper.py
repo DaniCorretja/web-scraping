@@ -10,7 +10,8 @@ class RecipesScraper():
     def __init__(self):
         #Inicializa el objecto RecipesScraper
         self.url = "https://www.recetasgratis.net"
-        self.data = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion', 'Link_receta', 'Num_comments', 'Num_reviews', 'Post_date'])
+        self.columns = ['Id','Categoria','Nombre','Valoracion','Dificultad','Num_comensales','Tiempo','Tipo','Descripcion','Link_receta','Num_comments','Num_reviews','Fecha_modificacion','Ingredientes']
+        self.data = pd.DataFrame(columns=self.columns)
 
     def __download_html(self, url):
         #Decarga una página HTML y la devuelve
@@ -40,6 +41,13 @@ class RecipesScraper():
             return a_next_page.attrs["href"]
         return None
 
+    def __get_recipe_ingredients(self, bs_recipe):
+        ingredients = []
+        labels_ingredients = bs_recipe.find("div", {"class": "ingredientes"}).findAll("label")
+        for label in labels_ingredients:
+            ingredients.append(label.getText().strip())
+        return (',').join(ingredients)
+
     def __get_recipe_details(self, recipe_link):
         #Devuelve los detalles de una receta.
         #Patterns para regular expressions
@@ -65,9 +73,11 @@ class RecipesScraper():
                 post_date = self.__format_date(post_date_text)
             else:
                 post_date = None
-        return post_date,recipe_nvotes,recipe_ncomments
+        recipe_ingredients = self.__get_recipe_ingredients(bs_recipe)
+        return post_date,recipe_nvotes,recipe_ncomments,recipe_ingredients
 
     def __format_date(self, string_date):
+        #Formatea la fecha
         months = {"enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,"julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12}
         date_spit = string_date.lower().strip().split(" ")
         recipe_date = date(int(date_spit[2]), months.get(date_spit[1]), int(date_spit[0]))
@@ -76,7 +86,7 @@ class RecipesScraper():
     def __get_recipes(self, bs, recipe_category):
         #Devuelve dataframe con la información de las recetas (incluyendo la categoria pasada por parámetro)
         #Dataframe Inicial
-        receipes_page = pd.DataFrame(columns=['Id','Categoria','Nombre','Valoracion','Dificultad','NumComensales','Tiempo','Tipo','Descripcion','Link_receta', 'Num_comments', 'Num_reviews', 'Post_date'])
+        receipes_page = pd.DataFrame(columns=self.columns)
         recipes = bs.findAll("div", {"class": "resultado link", "data-js-selector":"resultado"})
         diff_patern = re.compile(r'Dificultad\s([A-Z,a-z]+)')
         id_pattern = re.compile(r'([0-9]+)\.html')
@@ -95,21 +105,22 @@ class RecipesScraper():
             recipe_diff = diff_patern.search(recipe.text).group(1) if diff_patern.search(recipe.text) else ""
             recipe_link = recipe_header.attrs["href"]
             #Get recipe details
-            recipe_date,recipe_nvotes,recipe_ncomments = self.__get_recipe_details(recipe_link)
+            recipe_date,recipe_nvotes,recipe_ncomments,recipe_ingredients = self.__get_recipe_details(recipe_link)
             #Append to dataframe
             receipes_page = receipes_page.append({'Id':recipe_id,
                                                   'Categoria':recipe_category,
                                                   'Nombre':recipe_name,
                                                   'Valoracion':recipe_val,
                                                   'Dificultad':recipe_diff,
-                                                  'NumComensales':recipe_numPeople,
+                                                  'Num_comensales':recipe_numPeople,
                                                   'Tiempo':recipe_time,
                                                   'Tipo':recipe_type,
                                                   'Descripcion':recipe_intro,
                                                   'Link_receta':recipe_link,
                                                   'Num_comments': recipe_ncomments,
                                                   'Num_reviews': recipe_nvotes,
-                                                  'Post_date': recipe_date
+                                                  'Fecha_modificacion': recipe_date,
+                                                  'Ingredientes': recipe_ingredients
                                                   },ignore_index=True)
         return receipes_page
 
@@ -144,5 +155,4 @@ class RecipesScraper():
 
     def data2csv(self, filename):
         #Guarda la información de las recetas en un fichero CSV
-        #file = open("../csv/" + filename, "w+")
         self.data.to_csv("./../csv/" + filename, index=False, header=True, sep="|")
