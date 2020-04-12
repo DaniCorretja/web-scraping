@@ -43,7 +43,7 @@ class RecipesScraper():
 
     def __get_recipe_ingredients(self, bs_recipe):
         ingredients = []
-        labels_ingredients = bs_recipe.find("div", {"class": "ingredientes"}).findAll("label")
+        labels_ingredients = bs_recipe.find("div", {"class": "ingredientes"}).findAll("label") if bs_recipe.find("div", {"class": "ingredientes"}) else []
         for label in labels_ingredients:
             ingredients.append(label.getText().strip())
         return (',').join(ingredients)
@@ -129,7 +129,7 @@ class RecipesScraper():
         #Log inicial
         print("Iniciando el proceso de web scraping para extraer recetas desde " + \
         "'" + self.url + "'...")
-        print("Este proces puede tardar unos 120 minuts.\n")
+        print("Este proceso puede tardar unos 120 minutos.\n")
 
 		#Iniciamos el timer
         start_time = time.time()
